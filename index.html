@@ -3,21 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paiement Instantané</title>
+  <title>QrBan</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-    .card { background: white; max-width: 400px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    input { width: 80%; padding: 10px; margin: 10px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
-    #qrcode { margin-top: 20px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 20px; background: #f1f5f9; margin: 0; }
+    .card { background: white; max-width: 380px; margin: 20px auto; padding: 24px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; color: #1e293b; font-size: 1.25rem; }
+    label { display: block; text-align: left; margin: 12px 0 4px; font-weight: 600; color: #475569; font-size: 0.9rem; }
+    input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+    #qrcode { margin-top: 24px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>Soluprint3d77</h2>
-    <p>Saisissez le montant de la prestation :</p>
-    <input type="number" id="amount" placeholder="Montant en € (ex: 25.00)" step="0.01">
-    <input type="text" id="ref" placeholder="Référence (ex: Facture 12)">
+    <label for="amount">Montant (€)</label>
+    <input type="number" id="amount" placeholder="0.00" step="0.01">
+    <label for="ref">Référence / Motif</label>
+    <input type="text" id="ref" placeholder="Facture N°">
     <div id="qrcode-container">
       <canvas id="qrcode"></canvas>
     </div>
@@ -30,20 +35,23 @@
 
     const qr = new QRious({
       element: document.getElementById('qrcode'),
-      size: 250
+      size: 240
     });
 
     function updateQR() {
-      const amount = parseFloat(document.getElementById('amount').value || 0).toFixed(2);
-      const ref = document.getElementById('ref').value || 'Paiement';
-      
-      const epcData = `BCD\n002\n1\nSCT\n${bic}\n${name}\n${iban}\nEUR${amount}\n\n${ref}\n`;
+      const amountVal = parseFloat(document.getElementById('amount').value || 0).toFixed(2);
+      const refVal = document.getElementById('ref').value || 'Paiement';
+      const epcData = `BCD\n002\n1\nSCT\n${bic}\n${name}\n${iban}\nEUR${amountVal}\n\n${refVal}\n`;
       qr.value = epcData;
     }
 
     document.getElementById('amount').addEventListener('input', updateQR);
     document.getElementById('ref').addEventListener('input', updateQR);
     updateQR();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
   </script>
 </body>
 </html>
