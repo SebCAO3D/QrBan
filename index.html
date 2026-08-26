@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paiement Instantané</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
+    .card { background: white; max-width: 400px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    input { width: 80%; padding: 10px; margin: 10px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
+    #qrcode { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Soluprint3d77</h2>
+    <p>Saisissez le montant de la prestation :</p>
+    <input type="number" id="amount" placeholder="Montant en € (ex: 25.00)" step="0.01">
+    <input type="text" id="ref" placeholder="Référence (ex: Facture 12)">
+    <div id="qrcode-container">
+      <canvas id="qrcode"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const iban = "FR7617328844006714080974165";
+    const bic = "SWNBFR22";
+    const name = "Soluprint3d77 - S. ROUCHET EI";
+
+    const qr = new QRious({
+      element: document.getElementById('qrcode'),
+      size: 250
+    });
+
+    function updateQR() {
+      const amount = parseFloat(document.getElementById('amount').value || 0).toFixed(2);
+      const ref = document.getElementById('ref').value || 'Paiement';
+      
+      const epcData = `BCD\n002\n1\nSCT\n${bic}\n${name}\n${iban}\nEUR${amount}\n\n${ref}\n`;
+      qr.value = epcData;
+    }
+
+    document.getElementById('amount').addEventListener('input', updateQR);
+    document.getElementById('ref').addEventListener('input', updateQR);
+    updateQR();
+  </script>
+</body>
+</html>
