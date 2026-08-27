@@ -1,49 +1,89 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paiement Instantané</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-    .card { background: white; max-width: 400px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    input { width: 80%; padding: 10px; margin: 10px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
-    #qrcode { margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement SEPA</title>
+    <!-- Moteur QR Code stable et integre -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; max-width: 400px; margin: auto; background: #f4f6f9; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: #1a1a1a; margin-bottom: 20px; }
+        label { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; color: #444; }
+        input { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        input[readonly] { background-color: #e9ecef; color: #495057; font-family: monospace; font-size: 13px; }
+        button { width: 100%; padding: 12px; margin-top: 20px; background: #0066cc; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        button:active { background: #004b99; }
+        #qrcode { margin-top: 25px; display: flex; justify-content: center; align-items: center; }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Soluprint3d77</h2>
-    <p>Saisissez le montant de la prestation :</p>
-    <input type="number" id="amount" placeholder="Montant en € (ex: 25.00)" step="0.01">
-    <input type="text" id="ref" placeholder="Référence (ex: Facture 12)">
-    <div id="qrcode-container">
-      <canvas id="qrcode"></canvas>
+
+    <div class="card">
+        <h2>Paiement SEPA</h2>
+
+        <label for="iban">Mon IBAN :</label>
+        <input type="text" id="iban" value="FR7617328844006714080974165" readonly>
+
+        <label for="beneficiaire">Nom / Entreprise :</label>
+        <input type="text" id="beneficiaire" placeholder="ex: Mon Nom">
+
+        <label for="montant">Montant (EUR) :</label>
+        <input type="number" id="montant" step="0.01" placeholder="ex: 25.00">
+
+        <label for="ref">N de facture / Motif :</label>
+        <input type="text" id="ref" placeholder="ex: FAC-2026-001">
+
+        <button onclick="generateQR()">Generer le QR Code</button>
+
+        <div id="qrcode"></div>
     </div>
-  </div>
 
-  <script>
-    const iban = "FR7617328844006714080974165";
-    const bic = "SWNBFR22";
-    const name = "Soluprint3d77 - S. ROUCHET EI";
+    <script>
+        let qrInstance = null;
 
-    const qr = new QRious({
-      element: document.getElementById('qrcode'),
-      size: 250
-    });
+        function generateQR() {
+            const iban = document.getElementById('iban').value.replace(/\s+/g, '');
+            const name = document.getElementById('beneficiaire').value.trim();
+            const amountVal = document.getElementById('montant').value;
+            const ref = document.getElementById('ref').value.trim();
 
-    function updateQR() {
-      const amount = parseFloat(document.getElementById('amount').value || 0).toFixed(2);
-      const ref = document.getElementById('ref').value || 'Paiement';
-      
-      const epcData = `BCD\n002\n1\nSCT\n${bic}\n${name}\n${iban}\nEUR${amount}\n\n${ref}\n`;
-      qr.value = epcData;
-    }
+            if (!name || !amountVal || isNaN(parseFloat(amountVal))) {
+                alert('Veuillez remplir le nom du beneficiaire et le montant.');
+                return;
+            }
 
-    document.getElementById('amount').addEventListener('input', updateQR);
-    document.getElementById('ref').addEventListener('input', updateQR);
-    updateQR();
-  </script>
+            const amount = parseFloat(amountVal).toFixed(2);
+
+            // Format standard europeen EPC (SEPA Credit Transfer)
+            const epcData = [
+                'BCD',
+                '002',
+                '1',
+                'SCT',
+                '',
+                name,
+                iban,
+                'EUR' + amount,
+                '',
+                '',
+                ref
+            ].join('\n');
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = ''; // Nettoyage de l'ancien QR code
+
+            // Creation du QR code
+            qrInstance = new QRCode(qrContainer, {
+                text: epcData,
+                width: 220,
+                height: 220,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+    </script>
 </body>
 </html>
